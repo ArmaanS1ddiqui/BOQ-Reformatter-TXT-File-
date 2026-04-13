@@ -1,0 +1,206 @@
+BOQ -> Software Format Converter
+Convert any raw Bill of Quantities into the standard 12-column .xlsx format required by the project management software.
+---
+CRITICAL RULES
+1. If the description exists, or if you are using a parent description, always return the full description — never summarise, truncate, or replace it with a placeholder like "[Parent Description]". Copy word for word.
+2.The Category and UOM values must be chosen exclusively from the approved lists in Step 5. The raw BOQ's unit or category wording will often differ - always map to the closest approved value from the list. No unlisted values are permitted under any circumstances.
+3. columns that must always be left blank are: Item Type, Budget Rate, HSN, Tax %.
+---
+Step 1: Parse the Raw BOQ
+Accept input in any form: image, PDF, plain text, or uploaded Excel/CSV. Extract every line item, noting:
+- Item numbers / hierarchy (parent vs sub-items)
+- Description text (verbatim)
+- Any bold or heading-style titles above items
+- Section/heading the item falls under
+- Unit of measurement
+- Quantity
+- Rate / price (including "By Client", "Excluded", "Included")
+---
+Step 2: Map to the 12-Column Format
+The output file has exactly 12 columns:
+Col A | Field: Name | Action: Populate — see Name Rules
+Col B | Field: Description | Action: Populate — copy verbatim
+Col C | Field: Section | Action: Populate — main BOQ heading only
+Col D | Field: Category | Action: Populate — from approved Category list
+Col E | Field: UOM | Action: Populate — from approved UOM list
+Col F | Field: Brand/Make | Action: Optional 
+Col G | Field: Item Type | Action: LEAVE BLANK
+Col H | Field: Quantity | Action: Populate (or 1 for consolidated items)
+Col I | Field: Client Rate | Action: Populate (0 if "By Client"/"Excluded"/"Included")
+Col J | Field: Budget Rate | Action: LEAVE BLANK
+Col K | Field: HSN | Action: LEAVE BLANK
+Col L | Field: Tax % | Action: LEAVE BLANK
+---
+Step 3: Apply Field Rules
+
+A — Name
+Rule 1 (Primary): If the item has a distinct title (e.g., in bold text, or a clear heading above the main description), you MUST use that exact text as the Name.
+Rule 2 (Secondary): If no distinct title is present (i.e., Rule 1 does not apply), read the item's description and create a short, descriptive title for the work. Do NOT use the item number (e.g., 1.1, 4.3.a).
+Example (Rule 1):
+BOQ shows: Inline Exhaust Fan with Ducting - Toilet Ventilation
+-> Name: Inline Exhaust Fan with Ducting - Toilet Ventilation
+Example (Rule 2):
+Description: "Supply and installation of MDF laminated doors"
+-> Name: MDF Laminated Doors
+Description: "Modification of existing DB as per requirement"
+-> Name: DB Modification
+
+B — Description
+CRITICAL Rule: If the description exists in the raw BOQ, it MUST be copied exactly as it appears, word for word. The wording must not be changed, summarised, or altered in any way.
+If there are any associated notes for that specific item (e.g., "Note: Complete screeding is not considered."), include them in the description.
+Special Cases: See Step 4 for rules on handling Consolidated Items and Parent & Sub-Items, which involve combining descriptions — but still using the original exact wording.
+
+C — Section
+This field identifies the part of the project the item belongs to. Use the main heading from the BOQ (e.g., CIVIL WORKS, ELECTRICAL WORKS, FLOORING WORK).
+Important: Use the heading text only. Do NOT add any prefixes like "GF -" or "1st F -".
+
+D — Category
+This is the most critical mapping step. Read the Description and assign the single most appropriate category from the approved list in Step 5.
+Categorise based on what the item actually is, not which section of the BOQ it appears in.
+Examples:
+- A painting item -> Painting (PT)
+- Installing toilet cubicles -> Partition (PN)
+- Supplying and installing a wash basin -> Plumbing (PL)
+- A mirror, even if listed under a plumbing section -> Glass Works (GL)
+
+E — UOM (Unit of Measurement)
+Find the unit in the raw BOQ and match it to the exact value from the approved UOM list in Step 5.
+Examples:
+- "Sqm" -> SQM
+- "Nos" or "nos." -> Nos.
+- "sets" -> Set
+- "Item" -> item
+
+H — Quantity
+Copy the numerical quantity for the item.
+Special Case: For consolidated items, the quantity is always 1 (see Step 4).
+Include items with zero quantity as long as they have a valid rate — these are priced items that were scoped but not allocated. Only skip a row if both quantity AND rate are zero or missing.
+Number format: Write as an integer if the value is whole (e.g. 2, 110, 3642). Only use a decimal if the raw value is genuinely non-integer (e.g. 913.28, 216.1). Never write 2.0 or 338.0.
+
+I — Client Rate
+Copy the numerical rate for the item into the Client Rate column (Column I).
+Note: The raw BOQ may label this column simply as "Rate". Always map it to Client Rate (Column I). Leave Budget Rate (Column J) blank.
+CRITICAL: If the rate in the BOQ is listed as "By Client", "Excluded", or "Included", you MUST enter the rate as 0.
+Number format: Same rule as Quantity — write as integer when whole, decimal only when necessary. Never write 1675.0 or 757312.0.
+---
+Step 4: Handle Special Scenarios
+
+Scenario 1: Consolidated Items
+When to Apply: When you see a list of multiple activities in the BOQ that are covered by a single, combined price.
+How to Handle:
+- Create only one single row for the entire group.
+- Name: Create a summary title, e.g., Complete Demolition Works.
+- Description: Combine the descriptions of all the sub-activities into one. Start with "Consolidated item for [X] sets of the following works:" and then list each activity.
+- Quantity: Set to 1.
+- UOM: Set to Job or Lumpsum.
+- Client Rate: Use the single combined price shown in the BOQ.
+
+Scenario 2: Items Split into Supply & Install
+When to Apply: When a single task is broken into multiple lines with separate prices (e.g., one line for "Supply of tiles" and another for "Installation of tiles").
+How to Handle: Treat each line as a separate and complete item. Create a distinct row for the Supply part and another distinct row for the Installation part.
+
+Scenario 3: Parent & Sub-Items
+When to Apply: When a main item (e.g., 2.0) provides a general description but has no quantity or rate, and is immediately followed by indented sub-items (e.g., 2.1, 2.2) that do have their own quantities and rates.
+How to Handle:
+- Do NOT create a row for the parent item. It is a descriptive header only.
+- For each sub-item, create a separate, complete row.
+- The Description for each sub-item row must be the combination of the parent item's description followed by the sub-item's own description.
+- Critical: Only inherit parent context if the sub-item's number is a direct numeric child of the parent (i.e. A.04.01 starts with A.04.). A subsequent standalone item like A.05 with its own full description must not inherit A.04's description — clear the parent context as soon as a new top-level item is encountered.
+
+Scenario 4: "Same as Above" Items
+When to Apply: When a row's description reads "Same as above [but ...]" or similar.
+How to Handle:
+- Do not output the literal text "same as above" as the description.
+- Replace it with the full description of the immediately preceding line item (the last row that had a genuine description, not another "same as above").
+- Append any stated difference as a suffix: (Amendment: <difference text>).
+- This applies to chains too — if row N says "same as above" and row N-1 was also a resolved "same as above", resolve row N against the already-resolved description of row N-1.
+Example:
+- B.02: "Framed Double Glazed Partition: Supply and installation of..."
+- B.02(a): "Same as above but height is 2800/2850mm"
+- -> B.02(a) Description: "Framed Double Glazed Partition: Supply and installation of... (Amendment: height is 2800/2850mm)"
+---
+Step 5: Approved Lists for Category & UOM
+Only the values from these lists are permitted in their respective fields.
+Categories
+Acoustic (AT), BMS (BM), Branding (BR), Carpentry (CR), CCTV & IT (IT), Civil (CL), Cladding (CD), Design Service (DS), Dismantling (DG), Doors (DR), Electrical (EL), Excavation (EX), External Development (ED), False Ceiling (FC), Fire Alarm System (FA), Fire Fighting (FF), Flooring (FL), Furniture (FR), Glass Works (GL), Housekeeping (HK), HVAC (AC), Interior (IR), Landscaping (LD), Lighting Fixtures (LF), Masonry (MS), MEP (ME), Metal Fabrication (MF), Miscellaneous (MI), Networking (NW), Non-Tender (NT), Painting (PT), Panelling Work (PW), Partition (PN), PA System (SY), Pest Control (PO), Plumbing (PL), PoP (PP), Recce Service (RS), Signage (SG), Tile (TE), Wall Finish (WF)
+
+Units of Measurement (UOM)
+AC, Bags, Boards, Boxes, Brass, Bundles, Coil, CuFt, Cum, DC, Days, Dozen, Each, Feet, Ha, Hours, Inch, Job, KW, Kg, Km, L, Length, Linear Meter, Lot, Lumpsum, MW, Metric Ton, Months, Nos., Packets, Pairs, Pieces, Pound, Quintal, RFT, RMT, Rolls, SQFT, SQM, Sample, Service, Set, Sheets, SqInch, Ton, Units, Watts/M.Sq-K, Watts/meter-K, gm, hp, item, mL, meter, mm, trip
+---
+Step 6: Worked Examples
+
+Example 1: The Consolidated Item
+Teaches how to handle multiple activities with a single price.
+Raw BOQ: Lists 6 activities under EXTRACT WORKS with one quantity (5 Sets) and one rate (19,650.00) for the entire group.
+Thinking Process:
+- Identify: Multiple descriptions, one price -> consolidated item.
+- Name: Complete Extract Works
+- Quantity/UOM: Set Quantity to 1 and UOM to Job.
+- Description: Move the "5 sets" detail into the description and list all activities.
+- Section: MEP WORKS
+- Category: Work involves fans and ventilation -> HVAC (AC)
+Output row:
+A — Name: Complete Extract Works
+B — Description: Consolidated item for 5 sets of the following works: Removal of old extract fans; Supply and installation of new exhaust fans 10" S&P (Spain); Block all duct openings; Make new openings; Supply and installation of VCD 4"; Supply and installation of Round rings 4".
+C — Section: MEP WORKS
+D — Category: HVAC (AC)
+E — UOM: Job
+H — Quantity: 1
+I — Client Rate: 19650.00
+
+Example 2: The Tricky Category Mapping
+Teaches prioritising the item's actual description over the section it's in.
+Raw BOQ: Item "Mirror (6mm thick...)" listed under section SANITARY FIXTURES & PLUMBING WORKS.
+Thinking Process:
+- Section: Correctly SANITARY FIXTURES & PLUMBING WORKS — reflects where it appears in the BOQ.
+- Category: The item is a mirror. Despite being in a plumbing section, Glass Works (GL) is the accurate fit. Always categorise based on what the item is.
+Output row:
+A — Name: Mirror
+B — Description: Mirror (6mm thick, 600x1200mm size, fixed on wall with sylicone)
+C — Section: SANITARY FIXTURES & PLUMBING WORKS
+D — Category: Glass Works (GL)
+E — UOM: Nos.
+H — Quantity: 20
+I — Client Rate: 290.00
+
+Example 3: The "By Client" / Zero-Rate Item
+Teaches the critical rule for handling non-numerical rates.
+Raw BOQ: "Fire Alarm Works and Fire Fighting Works..." with rate listed as By Client.
+Thinking Process:
+- Rate is not a number -> must enter 0.
+- Category: Item mentions both Fire Alarm and Fire Fighting -> Fire Fighting (FF).
+- Name: Civil Defense Works (FA/FF)
+Output row:
+A — Name: Civil Defense Works (FA/FF)
+B — Description: Fire Alarm Works and Fire Fighting Works, including submission and preparation of drawings; and all necessary approvals from DCD, 24x7
+C — Section: CIVIL DEFENSE WORKS
+D — Category: Fire Fighting (FF)
+E — UOM: item
+H — Quantity: 1
+I — Client Rate: 0
+
+Example 4: The Parent & Sub-Items
+Teaches how to handle items where a parent description applies to multiple sub-items.
+Raw BOQ: Item 1 has a long general description for "General Excavation..." but no quantity or rate. Sub-items 1a and 1b each have quantities and rates.
+Thinking Process:
+- Item 1 is a parent -> no row created for it.
+- Items 1a and 1b are the billable line items -> two separate rows.
+- Description for each = full parent description + sub-item's own description combined.
+Output rows:
+A — Name: General Excavation (Depth to -2.5m)
+B — Description: General Excavation by mechanical means in all types of soil... [full parent description] ...Excavation of Soil - depth up to -2.5 Mt from already excavated level
+C — Section: Earth Work
+D — Category: Excavation (EX)
+E — UOM: Cum
+H — Quantity: 6365
+I — Client Rate: 136.00
+A — Name: General Excavation (Depth to -4.5m)
+B — Description: General Excavation by mechanical means in all types of soil... [full parent description] ...Excavation of Soil - depth up to -2.5 -4.5 Mt from already excavated level
+C — Section: Earth Work
+D — Category: Excavation (EX)
+E — UOM: Cum
+H — Quantity: 391
+I — Client Rate: 226.00
+No row is created for the parent item. Two rows created — one per sub-item.
+
+
