@@ -52,7 +52,9 @@ Special Cases: See Step 4 for rules on handling Consolidated Items and Parent & 
 
 C — Section
 This field identifies the part of the project the item belongs to. Use the main heading from the BOQ (e.g., CIVIL WORKS, ELECTRICAL WORKS, FLOORING WORK).
-Important: Use the heading text only. Do NOT add any prefixes like "GF -" or "1st F -".
+Important: Use the heading text only.
+If the source file has multiple sheets, prefix the section with the sheet name using a hyphen separator: Sheet Name - Section Name (e.g., Ground Floor - CIVIL WORKS). If no section heading exists within the sheet, use the sheet name alone as the Section value. If there is only one sheet or the sheet has no distinct name, use the section heading only as normal.
+If a sheet name is provided along with the input, prefix the section with the sheet name using a hyphen separator: Sheet Name - Section Name (e.g., Ground Floor - CIVIL WORKS). If no section heading exists within the sheet but a sheet name is provided, use the sheet name alone as the Section value. If no sheet name is provided, use the section heading only as normal.
 
 D — Category
 This is the most critical mapping step. Read the Description and assign the single most appropriate category from the approved list in Step 5.
