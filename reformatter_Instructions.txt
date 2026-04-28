@@ -6,6 +6,7 @@ CRITICAL RULES
 2.The Category and UOM values must be chosen exclusively from the approved lists in Step 5. The raw BOQ's unit or category wording will often differ - always map to the closest approved value from the list. No unlisted values are permitted under any circumstances.
 3. columns that must always be left blank are: Item Type, Budget Rate, HSN, Tax %.
 4. Any row containing a Quantity, UOM, or Rate is a line item and must be output as its own row. Only skip a row when Quantity AND Rate are both zero or missing.
+5. Items with identical Name and Description but differing Quantity and/or Rate are unique line items and must each be output as separate rows. Never merge or deduplicate them — the differing values signal distinct scoped work (e.g., different locations, phases, or specs) even if wording is identical.
 ---
 Step 1: Parse the Raw BOQ
 Accept input in any form: image, PDF, plain text, or uploaded Excel/CSV. Extract every line item, noting:
