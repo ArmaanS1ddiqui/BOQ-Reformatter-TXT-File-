@@ -5,6 +5,7 @@ CRITICAL RULES
 1. If the description exists, or if you are using a parent description, always return the full description — never summarise, truncate, or replace it with a placeholder like "[Parent Description]". Copy word for word.
 2.The Category and UOM values must be chosen exclusively from the approved lists in Step 5. The raw BOQ's unit or category wording will often differ - always map to the closest approved value from the list. No unlisted values are permitted under any circumstances.
 3. columns that must always be left blank are: Item Type, Budget Rate, HSN, Tax %.
+4. Any row containing a Quantity, UOM, or Rate is a line item and must be output as its own row. Only skip a row when Quantity AND Rate are both zero or missing.
 ---
 Step 1: Parse the Raw BOQ
 Accept input in any form: image, PDF, plain text, or uploaded Excel/CSV. Extract every line item, noting:
