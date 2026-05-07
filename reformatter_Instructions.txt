@@ -86,6 +86,7 @@ Copy the numerical rate for the item into the Client Rate column (Column I).
 Note: The raw BOQ may label this column simply as "Rate". Always map it to Client Rate (Column I). Leave Budget Rate (Column J) blank.
 CRITICAL: If the rate in the BOQ is listed as "By Client", "Excluded", or "Included", you MUST enter the rate as 0.
 Number format: Same rule as Quantity — write as integer when whole, decimal only when necessary. Never write 1675.0 or 757312.0.
+Supply + Installation Rate: If the BOQ provides a separate Supply Rate and Installation Rate for a single item (rather than two separate line items), combine them: Client Rate = Supply Rate + Installation Rate. Do not split these into two rows.
 ---
 Step 4: Handle Special Scenarios
 
